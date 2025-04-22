@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>🎬 Cinema Booking</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #eef1f5;
+      margin: 0;
+      padding: 0;
+      color: #333;
+    }
+
+    header {
+      background-color: #1c1f26;
+      color: white;
+      padding: 30px 0;
+      text-align: center;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    header h1 {
+      font-size: 2.5rem;
+      margin: 0;
+    }
+
+    .container {
+      padding: 40px 20px;
+      max-width: 1000px;
+      margin: auto;
+    }
+
+    .movie-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 30px;
+    }
+
+    .movie-card {
+      background-color: #fff;
+      border-radius: 12px;
+      padding: 25px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+      transition: transform 0.2s ease;
+    }
+
+    .movie-card:hover {
+      transform: translateY(-5px);
+    }
+
+    .movie-card h3 {
+      margin-top: 0;
+      margin-bottom: 10px;
+      font-size: 1.5rem;
+      color: #222;
+    }
+
+    .movie-card p {
+      margin: 0 0 15px;
+      font-size: 1rem;
+      color: #666;
+    }
+
+    input[type="text"] {
+      padding: 10px;
+      width: 100%;
+      margin-bottom: 12px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 1rem;
+    }
+
+    button {
+      padding: 10px 18px;
+      background-color: #007bff;
+      border: none;
+      color: white;
+      border-radius: 6px;
+      font-size: 1rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #0056b3;
+    }
+
+    p.message {
+      margin-top: 10px;
+      font-weight: 500;
+      font-size: 0.95rem;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>🎟️ Cinema Ticket Booking</h1>
+  </header>
+
+  <div class="container">
+    <div id="movie-list" class="movie-grid"></div>
+  </div>
+
+  <script>
+    async function loadMovies() {
+      const res = await fetch('/movies');
+      const movies = await res.json();
+      const movieList = document.getElementById('movie-list');
+
+      movies.forEach(movie => {
+        const div = document.createElement('div');
+        div.className = 'movie-card';
+        div.innerHTML = `
+          <h3>${movie.title}</h3>
+          <p>🎫 Available Seats: ${movie.seats}</p>
+          <input type="text" placeholder="Enter your name" id="name-${movie.id}" />
+          <button onclick="book(${movie.id})">Book Now</button>
+          <p class="message" id="msg-${movie.id}"></p>
+        `;
+        movieList.appendChild(div);
+      });
+    }
+
+    async function book(movieId) {
+      const name = document.getElementById(`name-${movieId}`).value;
+      const msg = document.getElementById(`msg-${movieId}`);
+
+      if (!name.trim()) {
+        msg.textContent = "Please enter your name.";
+        msg.style.color = 'red';
+        return;
+      }
+
+      const res = await fetch('/book', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ movieId, customerName: name })
+      });
+
+      const data = await res.json();
+      msg.textContent = data.message;
+      msg.style.color = res.ok ? 'green' : 'red';
+
+      if (res.ok) {
+        setTimeout(() => location.reload(), 1000);
+      }
+    }
+
+    loadMovies();
+  </script>
+</body>
+</html>
